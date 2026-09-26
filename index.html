@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Red Wings Tournament · U14 AAA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ice:#EEF3F6;--card:#fff;--ink:#18212E;--blue:#1E4FA8;--red:#C8102E;--gold:#B8860B;--muted:#5B6878;--line:#D5DEE6;--mine:#FFF1F3;--win:#1F8A4C;--zone:#E6EEFB;--czone:#F5F0E1;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ice:#0F151D;--card:#18212E;--ink:#E8EEF3;--blue:#7AA5F0;--red:#FF5A70;--gold:#E0B64A;--muted:#93A1B2;--line:#27323F;--mine:#2E1A21;--win:#4FCB82;--zone:#16233A;--czone:#2A2618}}
+*,*:before,*:after{box-sizing:inherit}
+html,body{margin:0}
+body{background:var(--ice);color:var(--ink);font:16px/1.45 Barlow,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--red);color:#fff;padding:16px 16px 12px;position:relative}
+header:after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;background:var(--blue)}
+h1{font:800 clamp(28px,8vw,42px)/.95 "Barlow Condensed",Impact,sans-serif;margin:0}
+.sub{opacity:.92;font-weight:500;margin-top:4px}
+.bar{position:sticky;top:0;z-index:5;background:var(--ice);padding:16px 16px 10px;border-bottom:1px solid var(--line)}
+.wrap,main{max-width:820px;margin:0 auto}
+main{padding:4px 16px 48px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:10px}
+.tabs button{border:0;background:none;padding:9px 4px;border-radius:9px;font:700 17px "Barlow Condensed",sans-serif;color:var(--muted)}
+.tabs button[aria-selected=true]{background:var(--blue);color:#fff}
+.row{display:flex;gap:8px}
+input,select,button{font:inherit;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 12px}
+input,select{flex:1;min-width:0}
+button{cursor:pointer;font-weight:600}
+:focus-visible{outline:3px solid var(--blue);outline-offset:1px}
+.status{margin-top:8px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.status button{padding:5px 12px;font-size:13px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--win);margin-right:6px}
+.dot.snap{background:var(--gold)}
+.section{font:700 22px/1 "Barlow Condensed",sans-serif;color:var(--blue);margin:22px 0 8px;padding-bottom:4px;border-bottom:3px solid var(--blue);display:flex;justify-content:space-between;align-items:baseline}
+.section small{font:500 13px Barlow,sans-serif;color:var(--muted)}
+.tablewrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+td,th{padding:8px 7px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:center}
+tr:last-child td{border-bottom:0}
+th{font:700 14px "Barlow Condensed",sans-serif;color:var(--muted);background:var(--card);position:sticky;top:0}
+td.t,th.t{text-align:left;position:sticky;left:0;background:inherit;max-width:44vw;overflow:hidden;text-overflow:ellipsis}
+td.t{font-weight:700}
+tbody tr{background:var(--card)}
+tbody tr.q{background:var(--zone)}
+tbody tr.c{background:var(--czone)}
+tbody tr.me{background:var(--mine);box-shadow:inset 4px 0 0 var(--red)}
+tr.cut td{border-bottom:3px solid var(--blue)}
+tr.ccut td{border-bottom:3px dashed var(--gold)}
+td.pts{font:800 19px "Barlow Condensed",sans-serif;color:var(--blue)}
+td.rk{font:800 18px "Barlow Condensed",sans-serif;color:var(--muted);width:28px}
+.pos{color:var(--win)}.neg{color:var(--red)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin:10px 2px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px;border:1px solid var(--line)}
+.hero{background:var(--ink);color:var(--ice);border-radius:14px;padding:18px;margin-top:14px}
+.hero h2{font:800 30px/1 "Barlow Condensed",sans-serif;margin:0 0 4px}
+.hero .zone{font-weight:600;opacity:.85;margin-bottom:14px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{background:rgba(127,140,160,.16);border-radius:10px;padding:10px 4px;text-align:center}
+.stat b{display:block;font:800 30px/1 "Barlow Condensed",sans-serif}
+.stat span{font-size:12px;opacity:.8}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.panel h3{font:700 16px "Barlow Condensed",sans-serif;color:var(--muted);margin:0 0 4px}
+.panel .big{font:700 21px/1.15 "Barlow Condensed",sans-serif}
+.panel p{margin:4px 0 0;font-size:14px;color:var(--muted)}
+.game{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--line);border-radius:6px 12px 12px 6px;padding:10px 14px;margin:8px 0}
+.game.mine{border-left-color:var(--red);background:var(--mine)}
+.game.next{border-left-color:var(--gold)}
+.gtop{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:var(--muted);margin-bottom:4px}
+.gtop b{color:var(--ink)}
+.teams{display:grid;grid-template-columns:1fr auto;gap:1px 12px;font:700 20px/1.2 "Barlow Condensed",sans-serif}
+.teams .w{color:var(--win)} .teams .l{opacity:.6}
+.score{text-align:right;font-variant-numeric:tabular-nums}
+.proj{font:500 13px Barlow,sans-serif;color:var(--muted)}
+.tag{display:inline-block;font:700 12px Barlow,sans-serif;padding:1px 7px;border-radius:6px;background:var(--gold);color:#fff;margin-left:6px}
+.res{display:inline-block;min-width:22px;text-align:center;border-radius:6px;padding:0 6px;font:700 14px Barlow,sans-serif;color:#fff;margin-right:6px}
+.res.W{background:var(--win)}.res.L{background:var(--red)}.res.T{background:var(--muted)}
+.empty{padding:28px 4px;color:var(--muted)}
+.chips{display:flex;gap:6px;overflow-x:auto;margin-top:12px;padding-bottom:2px}
+.chips button{white-space:nowrap;padding:6px 12px;font-size:14px;border-radius:999px}
+.chips button[aria-pressed=true]{background:var(--blue);color:#fff;border-color:var(--blue)}
+@media (max-width:520px){.pair{grid-template-columns:1fr}.stat b{font-size:25px}}
+</style>
+</head>
+<body>
+<header><h1>Red Wings Tournament</h1><div class="sub">U14 AAA · Scotia Pond &amp; Chesswood · Sep 25–27</div></header>
+<div class="bar"><div class="wrap">
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="team" aria-selected="true">My team</button>
+    <button role="tab" data-tab="standings" aria-selected="false">Standings</button>
+    <button role="tab" data-tab="schedule" aria-selected="false">Schedule</button>
+  </div>
+  <div class="row">
+    <input id="q" type="search" placeholder="Search team or rink" autocomplete="off">
+    <select id="team" aria-label="Your team"></select>
+  </div>
+  <div class="status"><span><span id="dot" class="dot snap"></span><span id="upd"></span></span><button id="refresh" type="button">Refresh</button></div>
+</div></div>
+<main id="out"></main>
+<script>
+// ---- settings ----
+const SHEET="https://docs.google.com/spreadsheets/d/e/2PACX-1vSYYvchLq61YbJVSejZdSokjnWaTtjtfif9QUX2Qp6hM9wl_86r5P3TQ_maFRx9_upcGQcKanJ8auoh/pub?gid=1624470606&single=true&output=csv";
+const PROXY="/api/data"; // paste your Cloudflare Worker URL here for live updates
+const DEFAULT_TEAM="Elgin Middlesex Canucks";
+const SNAP_LABEL="Snapshot Fri 8:11 PM";
+const SNAP={"standings": [{"rank": 1, "team": "Toronto Jr Canadiens", "G": 2, "W": 2, "L": 0, "T": 0, "GF": 11, "GA": 0, "PTS": 4, "pct": "100.00%"}, {"rank": 2, "team": "Toronto Marlboros", "G": 2, "W": 2, "L": 0, "T": 0, "GF": 17, "GA": 2, "PTS": 4, "pct": "89.47%"}, {"rank": 3, "team": "Vaughan Kings", "G": 2, "W": 2, "L": 0, "T": 0, "GF": 8, "GA": 1, "PTS": 4, "pct": "88.89%"}, {"rank": 4, "team": "Huron Perth Lakers", "G": 2, "W": 2, "L": 0, "T": 0, "GF": 6, "GA": 1, "PTS": 4, "pct": "85.71%"}, {"rank": 5, "team": "Toronto Nationals", "G": 2, "W": 2, "L": 0, "T": 0, "GF": 16, "GA": 3, "PTS": 4, "pct": "84.21%"}, {"rank": 6, "team": "Don Mills Flyers", "G": 2, "W": 2, "L": 0, "T": 0, "GF": 11, "GA": 3, "PTS": 4, "pct": "78.57%"}, {"rank": 7, "team": "Reps Hockey", "G": 2, "W": 2, "L": 0, "T": 0, "GF": 14, "GA": 4, "PTS": 4, "pct": "77.78%"}, {"rank": 8, "team": "Buffalo Jr Sabres", "G": 2, "W": 2, "L": 0, "T": 0, "GF": 5, "GA": 3, "PTS": 4, "pct": "62.50%"}, {"rank": 9, "team": "Elgin Middlesex Canucks", "G": 2, "W": 2, "L": 0, "T": 0, "GF": 9, "GA": 6, "PTS": 4, "pct": "60.00%"}, {"rank": 10, "team": "Toronto Titans", "G": 1, "W": 1, "L": 0, "T": 0, "GF": 8, "GA": 0, "PTS": 2, "pct": "100.00%"}, {"rank": 11, "team": "Syracuse Nationals", "G": 1, "W": 1, "L": 0, "T": 0, "GF": 5, "GA": 2, "PTS": 2, "pct": "71.43%"}, {"rank": 12, "team": "Ottawa Valley Titans", "G": 1, "W": 1, "L": 0, "T": 0, "GF": 4, "GA": 2, "PTS": 2, "pct": "66.67%"}, {"rank": 13, "team": "Waterloo Wolves", "G": 2, "W": 1, "L": 1, "T": 0, "GF": 5, "GA": 3, "PTS": 2, "pct": "62.50%"}, {"rank": 14, "team": "Mississauga Senators", "G": 2, "W": 1, "L": 1, "T": 0, "GF": 5, "GA": 3, "PTS": 2, "pct": "62.50%"}, {"rank": 15, "team": "Toronto Red Wings", "G": 2, "W": 1, "L": 1, "T": 0, "GF": 6, "GA": 4, "PTS": 2, "pct": "60.00%"}, {"rank": 16, "team": "Saints Hockey Club", "G": 2, "W": 1, "L": 1, "T": 0, "GF": 7, "GA": 6, "PTS": 2, "pct": "53.85%"}, {"rank": 17, "team": "Barrie Colts", "G": 2, "W": 1, "L": 1, "T": 0, "GF": 8, "GA": 9, "PTS": 2, "pct": "47.06%"}, {"rank": 18, "team": "Peterborough Jr Petes", "G": 2, "W": 1, "L": 1, "T": 0, "GF": 6, "GA": 7, "PTS": 2, "pct": "46.15%"}, {"rank": 19, "team": "Windsor Spitfires", "G": 2, "W": 1, "L": 1, "T": 0, "GF": 5, "GA": 6, "PTS": 2, "pct": "45.45%"}, {"rank": 20, "team": "Burlington Eagles", "G": 2, "W": 1, "L": 1, "T": 0, "GF": 3, "GA": 6, "PTS": 2, "pct": "33.33%"}, {"rank": 21, "team": "Markham Majors", "G": 2, "W": 0, "L": 0, "T": 2, "GF": 3, "GA": 3, "PTS": 2, "pct": "50.00%"}, {"rank": 22, "team": "Niagara North Stars", "G": 2, "W": 0, "L": 1, "T": 1, "GF": 3, "GA": 6, "PTS": 1, "pct": "33.33%"}, {"rank": 23, "team": "Mississauga Rebels", "G": 2, "W": 0, "L": 1, "T": 1, "GF": 4, "GA": 10, "PTS": 1, "pct": "28.57%"}, {"rank": 24, "team": "Halton Hurricanes", "G": 2, "W": 0, "L": 1, "T": 1, "GF": 2, "GA": 7, "PTS": 1, "pct": "22.22%"}, {"rank": 25, "team": "Ajax-Pickering Raiders", "G": 2, "W": 0, "L": 1, "T": 1, "GF": 3, "GA": 12, "PTS": 1, "pct": "20.00%"}, {"rank": 26, "team": "Quinte Red Devils", "G": 2, "W": 0, "L": 2, "T": 0, "GF": 4, "GA": 7, "PTS": 0, "pct": "36.36%"}, {"rank": 27, "team": "Soo Jr Greyhounds", "G": 2, "W": 0, "L": 2, "T": 0, "GF": 4, "GA": 8, "PTS": 0, "pct": "33.33%"}, {"rank": 28, "team": "Credit River Capitals", "G": 2, "W": 0, "L": 2, "T": 0, "GF": 3, "GA": 7, "PTS": 0, "pct": "30.00%"}, {"rank": 29, "team": "Oakville Rangers", "G": 1, "W": 0, "L": 1, "T": 0, "GF": 2, "GA": 5, "PTS": 0, "pct": "28.57%"}, {"rank": 30, "team": "Eastern Ontario Wild", "G": 2, "W": 0, "L": 2, "T": 0, "GF": 2, "GA": 7, "PTS": 0, "pct": "22.22%"}, {"rank": 31, "team": "London Jr Knights", "G": 2, "W": 0, "L": 2, "T": 0, "GF": 3, "GA": 15, "PTS": 0, "pct": "16.67%"}, {"rank": 32, "team": "York Simcoe Express", "G": 2, "W": 0, "L": 2, "T": 0, "GF": 1, "GA": 8, "PTS": 0, "pct": "11.11%"}, {"rank": 33, "team": "Markham Waxers", "G": 2, "W": 0, "L": 2, "T": 0, "GF": 1, "GA": 14, "PTS": 0, "pct": "6.67%"}, {"rank": 34, "team": "Kitchener Jr Rangers", "G": 2, "W": 0, "L": 2, "T": 0, "GF": 1, "GA": 15, "PTS": 0, "pct": "6.25%"}], "games": [{"id": "58", "date": "Fri Sep 25 2026", "time": "9:00 AM", "arena": "Scotia Pond 1", "type": "RR", "home": "Toronto Jr Canadiens", "hs": "4", "away": "York Simcoe Express", "vs": "0"}, {"id": "73", "date": "Fri Sep 25 2026", "time": "9:00 AM", "arena": "Scotia Pond 3", "type": "RR", "home": "Vaughan Kings", "hs": "4", "away": "Burlington Eagles", "vs": "0"}, {"id": "66", "date": "Fri Sep 25 2026", "time": "9:15 AM", "arena": "Scotia Pond 2", "type": "RR", "home": "Mississauga Senators", "hs": "3", "away": "Credit River Capitals", "vs": "0"}, {"id": "81", "date": "Fri Sep 25 2026", "time": "9:15 AM", "arena": "Scotia Pond 4", "type": "RR", "home": "Reps Hockey", "hs": "10", "away": "Ajax-Pickering Raiders", "vs": "1"}, {"id": "59", "date": "Fri Sep 25 2026", "time": "10:20 AM", "arena": "Scotia Pond 1", "type": "RR", "home": "Toronto Red Wings", "hs": "2", "away": "Peterborough Jr Petes", "vs": "3"}, {"id": "74", "date": "Fri Sep 25 2026", "time": "10:20 AM", "arena": "Scotia Pond 3", "type": "RR", "home": "Toronto Marlboros", "hs": "6", "away": "Halton Hurricanes", "vs": "1"}, {"id": "67", "date": "Fri Sep 25 2026", "time": "10:35 AM", "arena": "Scotia Pond 2", "type": "RR", "home": "Markham Majors", "hs": "2", "away": "Niagara North Stars", "vs": "2"}, {"id": "82", "date": "Fri Sep 25 2026", "time": "10:35 AM", "arena": "Scotia Pond 4", "type": "RR", "home": "Mississauga Rebels", "hs": "2", "away": "Barrie Colts", "vs": "8"}, {"id": "60", "date": "Fri Sep 25 2026", "time": "11:40 AM", "arena": "Scotia Pond 1", "type": "RR", "home": "Elgin Middlesex Canucks", "hs": "4", "away": "Quinte Red Devils", "vs": "3"}, {"id": "75", "date": "Fri Sep 25 2026", "time": "11:40 AM", "arena": "Scotia Pond 3", "type": "RR", "home": "Huron Perth Lakers", "hs": "3", "away": "Markham Waxers", "vs": "0"}, {"id": "68", "date": "Fri Sep 25 2026", "time": "11:55 AM", "arena": "Scotia Pond 2", "type": "RR", "home": "Toronto Titans", "hs": "8", "away": "Kitchener Jr Rangers", "vs": "0"}, {"id": "83", "date": "Fri Sep 25 2026", "time": "11:55 AM", "arena": "Scotia Pond 4", "type": "RR", "home": "Don Mills Flyers", "hs": "4", "away": "London Jr Knights", "vs": "2"}, {"id": "61", "date": "Fri Sep 25 2026", "time": "1:00 PM", "arena": "Scotia Pond 1", "type": "RR", "home": "Toronto Nationals", "hs": "5", "away": "Windsor Spitfires", "vs": "2"}, {"id": "76", "date": "Fri Sep 25 2026", "time": "1:00 PM", "arena": "Scotia Pond 3", "type": "RR", "home": "Eastern Ontario Wild", "hs": "1", "away": "Waterloo Wolves", "vs": "4"}, {"id": "69", "date": "Fri Sep 25 2026", "time": "1:15 PM", "arena": "Scotia Pond 2", "type": "RR", "home": "Buffalo Jr Sabres", "hs": "3", "away": "Soo Jr Greyhounds", "vs": "2"}, {"id": "84", "date": "Fri Sep 25 2026", "time": "1:15 PM", "arena": "Scotia Pond 4", "type": "RR", "home": "Saints Hockey Club", "hs": "2", "away": "Ottawa Valley Titans", "vs": "4"}, {"id": "62", "date": "Fri Sep 25 2026", "time": "2:20 PM", "arena": "Scotia Pond 1", "type": "RR", "home": "Syracuse Nationals", "hs": "5", "away": "Oakville Rangers", "vs": "2"}, {"id": "77", "date": "Fri Sep 25 2026", "time": "2:50 PM", "arena": "Scotia Pond 3", "type": "RR", "home": "Ajax-Pickering Raiders", "hs": "2", "away": "Mississauga Rebels", "vs": "2"}, {"id": "70", "date": "Fri Sep 25 2026", "time": "3:05 PM", "arena": "Scotia Pond 2", "type": "RR", "home": "York Simcoe Express", "hs": "1", "away": "Vaughan Kings", "vs": "4"}, {"id": "85", "date": "Fri Sep 25 2026", "time": "3:05 PM", "arena": "Scotia Pond 4", "type": "RR", "home": "Barrie Colts", "hs": "0", "away": "Toronto Jr Canadiens", "vs": "7"}, {"id": "63", "date": "Fri Sep 25 2026", "time": "3:40 PM", "arena": "Scotia Pond 1", "type": "RR", "home": "Burlington Eagles", "hs": "3", "away": "Mississauga Senators", "vs": "2"}, {"id": "78", "date": "Fri Sep 25 2026", "time": "4:10 PM", "arena": "Scotia Pond 3", "type": "RR", "home": "Credit River Capitals", "hs": "3", "away": "Reps Hockey", "vs": "4"}, {"id": "71", "date": "Fri Sep 25 2026", "time": "4:25 PM", "arena": "Scotia Pond 2", "type": "RR", "home": "Quinte Red Devils", "hs": "1", "away": "Huron Perth Lakers", "vs": "3"}, {"id": "86", "date": "Fri Sep 25 2026", "time": "4:25 PM", "arena": "Scotia Pond 4", "type": "RR", "home": "Halton Hurricanes", "hs": "1", "away": "Markham Majors", "vs": "1"}, {"id": "64", "date": "Fri Sep 25 2026", "time": "5:00 PM", "arena": "Scotia Pond 1", "type": "RR", "home": "Niagara North Stars", "hs": "1", "away": "Toronto Red Wings", "vs": "4"}, {"id": "7", "date": "Fri Sep 25 2026", "time": "5:30 PM", "arena": "Chesswood 1", "type": "RR", "home": "Waterloo Wolves", "hs": "1", "away": "Buffalo Jr Sabres", "vs": "2"}, {"id": "22", "date": "Fri Sep 25 2026", "time": "5:30 PM", "arena": "Chesswood 3", "type": "RR", "home": "London Jr Knights", "hs": "1", "away": "Toronto Nationals", "vs": "11"}, {"id": "79", "date": "Fri Sep 25 2026", "time": "5:30 PM", "arena": "Scotia Pond 3", "type": "RR", "home": "Markham Waxers", "hs": "1", "away": "Toronto Marlboros", "vs": "11"}, {"id": "15", "date": "Fri Sep 25 2026", "time": "5:45 PM", "arena": "Chesswood 2", "type": "RR", "home": "Windsor Spitfires", "hs": "3", "away": "Eastern Ontario Wild", "vs": "1"}, {"id": "29", "date": "Fri Sep 25 2026", "time": "5:45 PM", "arena": "Chesswood 4", "type": "RR", "home": "Kitchener Jr Rangers", "hs": "1", "away": "Don Mills Flyers", "vs": "7"}, {"id": "72", "date": "Fri Sep 25 2026", "time": "5:45 PM", "arena": "Scotia Pond 2", "type": "RR", "home": "Peterborough Jr Petes", "hs": "3", "away": "Elgin Middlesex Canucks", "vs": "5"}, {"id": "87", "date": "Fri Sep 25 2026", "time": "5:45 PM", "arena": "Scotia Pond 4", "type": "RR", "home": "Soo Jr Greyhounds", "hs": "2", "away": "Saints Hockey Club", "vs": "5"}, {"id": "65", "date": "Fri Sep 25 2026", "time": "6:20 PM", "arena": "Scotia Pond 1", "type": "RR", "home": "Ottawa Valley Titans", "hs": "", "away": "Syracuse Nationals", "vs": ""}, {"id": "80", "date": "Fri Sep 25 2026", "time": "6:50 PM", "arena": "Scotia Pond 3", "type": "RR", "home": "Oakville Rangers", "hs": "", "away": "Toronto Titans", "vs": ""}, {"id": "145", "date": "Sat Sep 26 2026", "time": "9:00 AM", "arena": "Scotia Pond 1", "type": "RR", "home": "Toronto Nationals", "hs": "", "away": "Kitchener Jr Rangers", "vs": ""}, {"id": "160", "date": "Sat Sep 26 2026", "time": "9:00 AM", "arena": "Scotia Pond 3", "type": "RR", "home": "Don Mills Flyers", "hs": "", "away": "Oakville Rangers", "vs": ""}, {"id": "153", "date": "Sat Sep 26 2026", "time": "9:15 AM", "arena": "Scotia Pond 2", "type": "RR", "home": "Toronto Titans", "hs": "", "away": "Ottawa Valley Titans", "vs": ""}, {"id": "168", "date": "Sat Sep 26 2026", "time": "9:15 AM", "arena": "Scotia Pond 4", "type": "RR", "home": "Syracuse Nationals", "hs": "", "away": "Soo Jr Greyhounds", "vs": ""}, {"id": "146", "date": "Sat Sep 26 2026", "time": "10:20 AM", "arena": "Scotia Pond 1", "type": "RR", "home": "Saints Hockey Club", "hs": "", "away": "Waterloo Wolves", "vs": ""}, {"id": "161", "date": "Sat Sep 26 2026", "time": "10:20 AM", "arena": "Scotia Pond 3", "type": "RR", "home": "Buffalo Jr Sabres", "hs": "", "away": "Windsor Spitfires", "vs": ""}, {"id": "154", "date": "Sat Sep 26 2026", "time": "10:35 AM", "arena": "Scotia Pond 2", "type": "RR", "home": "Eastern Ontario Wild", "hs": "", "away": "London Jr Knights", "vs": ""}, {"id": "169", "date": "Sat Sep 26 2026", "time": "10:35 AM", "arena": "Scotia Pond 4", "type": "RR", "home": "Toronto Red Wings", "hs": "", "away": "Halton Hurricanes", "vs": ""}, {"id": "147", "date": "Sat Sep 26 2026", "time": "11:40 AM", "arena": "Scotia Pond 1", "type": "RR", "home": "Toronto Marlboros", "hs": "", "away": "Quinte Red Devils", "vs": ""}, {"id": "162", "date": "Sat Sep 26 2026", "time": "11:40 AM", "arena": "Scotia Pond 3", "type": "RR", "home": "Markham Majors", "hs": "", "away": "Markham Waxers", "vs": ""}, {"id": "155", "date": "Sat Sep 26 2026", "time": "11:55 AM", "arena": "Scotia Pond 2", "type": "RR", "home": "Huron Perth Lakers", "hs": "", "away": "Peterborough Jr Petes", "vs": ""}, {"id": "170", "date": "Sat Sep 26 2026", "time": "11:55 AM", "arena": "Scotia Pond 4", "type": "RR", "home": "Reps Hockey", "hs": "", "away": "Burlington Eagles", "vs": ""}, {"id": "148", "date": "Sat Sep 26 2026", "time": "1:00 PM", "arena": "Scotia Pond 1", "type": "RR", "home": "Mississauga Senators", "hs": "", "away": "York Simcoe Express", "vs": ""}, {"id": "163", "date": "Sat Sep 26 2026", "time": "1:00 PM", "arena": "Scotia Pond 3", "type": "RR", "home": "Vaughan Kings", "hs": "", "away": "Barrie Colts", "vs": ""}, {"id": "156", "date": "Sat Sep 26 2026", "time": "1:15 PM", "arena": "Scotia Pond 2", "type": "RR", "home": "Toronto Jr Canadiens", "hs": "", "away": "Ajax-Pickering Raiders", "vs": ""}, {"id": "171", "date": "Sat Sep 26 2026", "time": "1:15 PM", "arena": "Scotia Pond 4", "type": "RR", "home": "Mississauga Rebels", "hs": "", "away": "Credit River Capitals", "vs": ""}, {"id": "149", "date": "Sat Sep 26 2026", "time": "2:20 PM", "arena": "Scotia Pond 1", "type": "RR", "home": "Elgin Middlesex Canucks", "hs": "", "away": "Niagara North Stars", "vs": ""}, {"id": "164", "date": "Sat Sep 26 2026", "time": "2:20 PM", "arena": "Scotia Pond 3", "type": "RR", "home": "Soo Jr Greyhounds", "hs": "", "away": "Toronto Titans", "vs": ""}, {"id": "157", "date": "Sat Sep 26 2026", "time": "3:05 PM", "arena": "Scotia Pond 2", "type": "RR", "home": "Waterloo Wolves", "hs": "", "away": "Syracuse Nationals", "vs": ""}, {"id": "172", "date": "Sat Sep 26 2026", "time": "3:05 PM", "arena": "Scotia Pond 4", "type": "RR", "home": "Windsor Spitfires", "hs": "", "away": "Saints Hockey Club", "vs": ""}, {"id": "150", "date": "Sat Sep 26 2026", "time": "3:40 PM", "arena": "Scotia Pond 1", "type": "RR", "home": "Oakville Rangers", "hs": "", "away": "Toronto Nationals", "vs": ""}, {"id": "165", "date": "Sat Sep 26 2026", "time": "3:40 PM", "arena": "Scotia Pond 3", "type": "RR", "home": "Kitchener Jr Rangers", "hs": "", "away": "Eastern Ontario Wild", "vs": ""}, {"id": "158", "date": "Sat Sep 26 2026", "time": "4:25 PM", "arena": "Scotia Pond 2", "type": "RR", "home": "London Jr Knights", "hs": "", "away": "Buffalo Jr Sabres", "vs": ""}, {"id": "173", "date": "Sat Sep 26 2026", "time": "4:25 PM", "arena": "Scotia Pond 4", "type": "RR", "home": "Ottawa Valley Titans", "hs": "", "away": "Don Mills Flyers", "vs": ""}, {"id": "151", "date": "Sat Sep 26 2026", "time": "5:00 PM", "arena": "Scotia Pond 1", "type": "RR", "home": "Quinte Red Devils", "hs": "", "away": "Markham Majors", "vs": ""}, {"id": "166", "date": "Sat Sep 26 2026", "time": "5:00 PM", "arena": "Scotia Pond 3", "type": "RR", "home": "Peterborough Jr Petes", "hs": "", "away": "Toronto Marlboros", "vs": ""}, {"id": "94", "date": "Sat Sep 26 2026", "time": "5:30 PM", "arena": "Chesswood 1", "type": "RR", "home": "Credit River Capitals", "hs": "", "away": "Toronto Jr Canadiens", "vs": ""}, {"id": "109", "date": "Sat Sep 26 2026", "time": "5:30 PM", "arena": "Chesswood 3", "type": "RR", "home": "York Simcoe Express", "hs": "", "away": "Reps Hockey", "vs": ""}, {"id": "102", "date": "Sat Sep 26 2026", "time": "5:45 PM", "arena": "Chesswood 2", "type": "RR", "home": "Burlington Eagles", "hs": "", "away": "Mississauga Rebels", "vs": ""}, {"id": "116", "date": "Sat Sep 26 2026", "time": "5:45 PM", "arena": "Chesswood 4", "type": "RR", "home": "Barrie Colts", "hs": "", "away": "Mississauga Senators", "vs": ""}, {"id": "159", "date": "Sat Sep 26 2026", "time": "5:45 PM", "arena": "Scotia Pond 2", "type": "RR", "home": "Niagara North Stars", "hs": "", "away": "Huron Perth Lakers", "vs": ""}, {"id": "174", "date": "Sat Sep 26 2026", "time": "5:45 PM", "arena": "Scotia Pond 4", "type": "RR", "home": "Halton Hurricanes", "hs": "", "away": "Elgin Middlesex Canucks", "vs": ""}, {"id": "152", "date": "Sat Sep 26 2026", "time": "6:20 PM", "arena": "Scotia Pond 1", "type": "RR", "home": "Markham Waxers", "hs": "", "away": "Toronto Red Wings", "vs": ""}, {"id": "167", "date": "Sat Sep 26 2026", "time": "6:20 PM", "arena": "Scotia Pond 3", "type": "RR", "home": "Ajax-Pickering Raiders", "hs": "", "away": "Vaughan Kings", "vs": ""}, {"id": "197", "date": "Sun Sep 27 2026", "time": "8:00 AM", "arena": "Scotia Pond 1", "type": "Q-Fnl 4", "home": "First Place", "hs": "", "away": "Eighth Place", "vs": ""}, {"id": "201", "date": "Sun Sep 27 2026", "time": "8:00 AM", "arena": "Scotia Pond 3", "type": "Q-Fnl 3", "home": "Second Place", "hs": "", "away": "Seventh Place", "vs": ""}, {"id": "199", "date": "Sun Sep 27 2026", "time": "8:15 AM", "arena": "Scotia Pond 2", "type": "Q-Fnl 2", "home": "Third Place", "hs": "", "away": "Sixth Place", "vs": ""}, {"id": "203", "date": "Sun Sep 27 2026", "time": "8:15 AM", "arena": "Scotia Pond 4", "type": "Q-Fnl 1", "home": "Fourth Place", "hs": "", "away": "Fifth Place", "vs": ""}, {"id": "176", "date": "Sun Sep 27 2026", "time": "9:25 AM", "arena": "Chesswood 1", "type": "C:S-Fnl 2", "home": "Ninth Place", "hs": "", "away": "Twelth Place", "vs": ""}, {"id": "188", "date": "Sun Sep 27 2026", "time": "9:25 AM", "arena": "Chesswood 3", "type": "C:S-Fnl 1", "home": "Tenth Place", "hs": "", "away": "Eleventh Place", "vs": ""}, {"id": "178", "date": "Sun Sep 27 2026", "time": "12:15 PM", "arena": "Chesswood 1", "type": "S-Fnl 1", "home": "Winner Quarter 3", "hs": "", "away": "Winner Quarter 2", "vs": ""}, {"id": "190", "date": "Sun Sep 27 2026", "time": "12:15 PM", "arena": "Chesswood 3", "type": "S-Fnl 2", "home": "Winner Quarter 4", "hs": "", "away": "Winner Quarter 1", "vs": ""}, {"id": "179", "date": "Sun Sep 27 2026", "time": "2:10 PM", "arena": "Chesswood 1", "type": "C:Final", "home": "Winner Semi 4", "hs": "", "away": "Winner Semi 3", "vs": ""}, {"id": "180", "date": "Sun Sep 27 2026", "time": "3:35 PM", "arena": "Chesswood 1", "type": "Final", "home": "Winner Semi 2", "hs": "", "away": "Winner Semi 1", "vs": ""}]};
+// ---- logic ----
+const PLACES=["First","Second","Third","Fourth","Fifth","Sixth","Seventh","Eighth","Ninth","Tenth","Eleventh","Twelth","Twelfth"];
+let D=SNAP, live=false, tab="team", dayF="";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const isNum=v=>/^\d+$/.test(String(v??"").trim());
+const when=g=>{const d=new Date(g.date+" "+g.time.replace(/(AM|PM)/," $1"));return isNaN(d)?null:d};
+const done=g=>isNum(g.hs)&&isNum(g.vs);
+const isRR=g=>/^RR$/i.test(g.type);
+function placeTeam(label){const m=String(label).match(/^(\w+) Place$/i); if(!m) return null;
+  const i=PLACES.findIndex(p=>p.toLowerCase()===m[1].toLowerCase()); const n=i>11?12:i+1;
+  const s=D.standings.find(x=>x.rank===n); return s?s.team:null;}
+function zone(r){return r<=8?"q":r<=12?"c":""}
+function zoneText(r){return r<=8?"In the top 8 · Sunday quarterfinals":r<=12?"9th–12th · consolation bracket":"Outside the playoff spots"}
+
+function parseCSV(t){const out=[];let row=[],f="",q=false;
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c=='"')q=true; else if(c==','){row.push(f);f=""}
+    else if(c=='\n'||c=='\r'){if(c=='\r'&&t[i+1]=='\n')i++;row.push(f);out.push(row);row=[];f=""}
+    else f+=c}
+  if(f!==""||row.length){row.push(f);out.push(row)}
+  return out.map(r=>r.map(s=>s.trim()));}
+function fromCSV(text){
+  const g=parseCSV(text), st=[], gm=[]; let mode=null, idx=null;
+  for(const r of g){const ne=r.filter(Boolean); if(!ne.length) continue;
+    if(ne[0]==="#"&&ne[1]==="Team"){mode="s";continue}
+    if(ne[0]==="Schedule"){mode=null;continue}
+    if(ne[0]==="Ga"&&r.includes("Home")){mode="g";const f=n=>r.indexOf(n);
+      idx={id:f("Ga"),date:f("Date"),time:f("Start"),arena:f("Arena"),type:f("Type"),home:f("Home"),hs:f("H"),away:f("Visitor"),vs:f("V")};continue}
+    if(mode==="s"&&ne.length>=10&&isNum(ne[0]))st.push({rank:+ne[0],team:ne[1],G:+ne[2],W:+ne[3],L:+ne[4],T:+ne[5],GF:+ne[6],GA:+ne[7],PTS:+ne[8],pct:ne[9]});
+    if(mode==="g"&&idx){const o={};for(const k in idx)o[k]=idx[k]>=0?(r[idx[k]]||""):"";if(o.home||o.away)gm.push(o)}}
+  if(st.length<4||gm.length<4) throw new Error("sheet layout changed");
+  return {standings:st,games:gm};}
+
+// ---- render ----
+function nameCell(label){const t=placeTeam(label); return t?`${esc(label)}<div class="proj">now: ${esc(t)}</div>`:esc(label)}
+function gameCard(g,team,nextId){
+  const mine=team&&(g.home===team||g.away===team), fin=done(g);
+  const hw=fin&&+g.hs>+g.vs, aw=fin&&+g.vs>+g.hs;
+  return `<div class="game${mine?" mine":""}${g.id===nextId?" next":""}">
+   <div class="gtop"><span><b>${esc(g.time)}</b> · ${esc(g.arena)}${g.id===nextId?'<span class="tag">Up next</span>':""}</span><span>${isRR(g)?"Game "+esc(g.id):"<b>"+esc(g.type)+"</b>"}</span></div>
+   <div class="teams"><div class="${aw?"w":fin?"l":""}">${nameCell(g.away||"TBD")}</div><div class="score">${fin?esc(g.vs):""}</div>
+   <div class="${hw?"w":fin?"l":""}">${nameCell(g.home||"TBD")}</div><div class="score">${fin?esc(g.hs):""}</div></div></div>`;}
+
+function renderStandings(q,team){
+  const list=D.standings.filter(s=>!q||s.team.toLowerCase().includes(q));
+  if(!list.length) return `<div class="empty">No team matches “${esc(q)}”.</div>`;
+  const rows=list.map(s=>{const d=s.GF-s.GA;
+    return `<tr class="${s.team===team?"me":zone(s.rank)} ${!q&&s.rank===8?"cut":""} ${!q&&s.rank===12?"ccut":""}"><td class="rk">${s.rank}</td><td class="t">${esc(s.team)}</td><td>${s.G}</td><td>${s.W}</td><td>${s.L}</td><td>${s.T}</td><td class="pts">${s.PTS}</td><td>${s.GF}</td><td>${s.GA}</td><td class="${d>0?"pos":d<0?"neg":""}">${d>0?"+":""}${d}</td><td>${esc(s.pct)}</td></tr>`}).join("");
+  return `<div class="section">Standings<small>${D.standings.length} teams</small></div>
+   <div class="tablewrap"><table><thead><tr><th></th><th class="t">Team</th><th>GP</th><th>W</th><th>L</th><th>T</th><th>PTS</th><th>GF</th><th>GA</th><th>+/-</th><th>%GF</th></tr></thead><tbody>${rows}</tbody></table></div>
+   <div class="legend"><span><span class="sw" style="background:var(--zone)"></span>Top 8: quarterfinals</span><span><span class="sw" style="background:var(--czone)"></span>9–12: consolation</span></div>
+   <p class="legend">Official ranking from the tournament sheet. Ties on points are separated by %GF (goals for ÷ total goals). Teams have played different numbers of games, so rank will move a lot until Saturday night.</p>`;}
+
+function renderTeam(team){
+  const s=D.standings.find(x=>x.team===team);
+  if(!s) return `<div class="empty">Pick your team above.</div>`;
+  const mine=D.games.filter(g=>g.home===team||g.away===team);
+  const played=mine.filter(done), left=mine.filter(g=>!done(g));
+  const now=new Date(); const next=left.find(g=>{const w=when(g);return !w||w>now-90*60000})||left[0];
+  const res=g=>{const home=g.home===team, us=+(home?g.hs:g.vs), them=+(home?g.vs:g.hs);return{r:us>them?"W":us<them?"L":"T",us,them,opp:home?g.away:g.home}};
+  const eighth=D.standings.find(x=>x.rank===8), d=s.GF-s.GA;
+  const gap=s.rank<=8?"":` · ${Math.max(0,eighth.PTS-s.PTS)} pt${eighth.PTS-s.PTS===1?"":"s"} behind 8th`;
+  const gamesLeft=left.filter(isRR).length;
+  let proj="";
+  if(s.rank<=12){const pg=D.games.find(g=>!isRR(g)&&[g.home,g.away].some(l=>placeTeam(l)===team));
+    if(pg){const opp=placeTeam(pg.home)===team?pg.away:pg.home;proj=`<div class="panel" style="margin-top:10px"><h3>If it ended now</h3><div class="big">${esc(pg.type)} vs ${esc(placeTeam(opp)||opp)}</div><p>Sun ${esc(pg.time)} · ${esc(pg.arena)}</p></div>`}}
+  return `<div class="hero"><h2>${esc(team)}</h2><div class="zone">${s.rank}${["th","st","nd","rd"][(s.rank%100>10&&s.rank%100<14)?0:Math.min(s.rank%10,4)%4]||"th"} of ${D.standings.length} · ${zoneText(s.rank)}${gap}</div>
+    <div class="stats"><div class="stat"><b>${s.W}-${s.L}-${s.T}</b><span>W-L-T</span></div><div class="stat"><b>${s.PTS}</b><span>Points</span></div>
+    <div class="stat"><b>${d>0?"+":""}${d}</b><span>${s.GF} GF · ${s.GA} GA</span></div><div class="stat"><b>${gamesLeft}</b><span>RR left</span></div></div></div>
+   <div class="pair">
+    <div class="panel"><h3>Next game</h3>${next?`<div class="big">vs ${esc(next.home===team?next.away:next.home)}</div><p>${esc(next.date.slice(0,3))} ${esc(next.time)} · ${esc(next.arena)} · ${next.home===team?"Home":"Away"}</p>`:`<div class="big">Round robin complete</div>`}</div>
+    <div class="panel"><h3>Last result</h3>${played.length?(()=>{const x=res(played[played.length-1]);return `<div class="big"><span class="res ${x.r}">${x.r}</span>${x.us}-${x.them}</div><p>vs ${esc(x.opp)}</p>`})():`<div class="big">No results yet</div>`}</div>
+   </div>${proj}
+   <div class="section">${esc(team)} games</div>${mine.map(g=>gameCard(g,team,next&&next.id)).join("")}`;}
+
+function renderSchedule(q,team){
+  const days=[...new Set(D.games.map(g=>g.date))];
+  let list=D.games.filter(g=>(!dayF||g.date===dayF)&&(!q||[g.home,g.away,g.arena,g.type,placeTeam(g.home),placeTeam(g.away)].join(" ").toLowerCase().includes(q)));
+  const chips=`<div class="chips">${["",...days].map(d=>`<button data-day="${esc(d)}" aria-pressed="${d===dayF}">${d?esc(d.slice(0,10)):"All days"}</button>`).join("")}</div>`;
+  if(!list.length) return chips+`<div class="empty">No games match. Clear the search or pick All days.</div>`;
+  const now=new Date(), next=D.games.find(g=>!done(g)&&(!when(g)||when(g)>now-90*60000));
+  let html=chips, cur=null;
+  for(const g of list){ if(g.date!==cur){cur=g.date;const n=list.filter(x=>x.date===cur);html+=`<div class="section">${esc(cur.slice(0,10))}<small>${n.filter(done).length}/${n.length} final</small></div>`}
+    html+=gameCard(g,team,next&&next.id)}
+  return html;}
+
+function render(){
+  const q=$("q").value.trim().toLowerCase(), team=$("team").value;
+  $("q").style.display=tab==="team"?"none":"";
+  $("out").innerHTML=tab==="team"?renderTeam(team):tab==="standings"?renderStandings(q,team):renderSchedule(q,team);
+  $("out").querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>{dayF=b.dataset.day;render()});}
+function fillTeams(){const sel=$("team"),keep=sel.value||store.get("team")||DEFAULT_TEAM;
+  const names=D.standings.map(s=>s.team).sort();
+  sel.innerHTML=names.map(t=>`<option${t===keep?" selected":""}>${esc(t)}</option>`).join("");}
+function setStatus(){$("dot").className="dot"+(live?"":" snap");
+  $("upd").textContent=live?"Live · updated "+new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):SNAP_LABEL+(PROXY?" · live feed not reachable":"");}
+
+async function load(){
+  const src=PROXY||SHEET;
+  try{const r=await fetch(src+(src.includes("?")?"&":"?")+"t="+Date.now(),{cache:"no-store"});
+    if(!r.ok) throw 0; D=fromCSV(await r.text()); live=true;}
+  catch(e){ /* keep last good data */ }
+  fillTeams(); setStatus(); render();}
+
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));render()});
+$("q").oninput=render;
+$("team").onchange=()=>{store.set("team",$("team").value);render()};
+$("refresh").onclick=load;
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)load()});
+fillTeams(); setStatus(); render(); load(); setInterval(load,60000);
+</script>
+</body>
+</html>
