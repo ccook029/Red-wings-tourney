@@ -143,7 +143,8 @@ function fromCSV(text){
   return {standings:st,games:gm};}
 
 // ---- render ----
-function nameCell(label){const t=placeTeam(label); return t?`${esc(label)}<div class="proj">now: ${esc(t)}</div>`:esc(label)}
+const teamLink=t=>D.standings.some(x=>x.team===t)?`<button class="tlink" data-goto="${esc(t)}">${esc(t)}</button>`:esc(t);
+function nameCell(label){const t=placeTeam(label); return t?`${esc(label)}<div class="proj">now: ${teamLink(t)}</div>`:teamLink(label)}
 function gameCard(g,team,nextId){
   const mine=team&&(g.home===team||g.away===team), fin=done(g);
   const hw=fin&&+g.hs>+g.vs, aw=fin&&+g.vs>+g.hs;
@@ -215,7 +216,7 @@ async function load(){
   fillTeams(); setStatus(); render();}
 
 function setTab(t){tab=t;document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x.dataset.tab===t))}
-function showTeam(t){history.replaceState({tab,team:$("team").value,y:scrollY},"");
+function showTeam(t){if(tab==="team"&&$("team").value===t)return;history.replaceState({tab,team:$("team").value,y:scrollY},"");
   $("team").value=t;setTab("team");render();scrollTo(0,0);history.pushState({tab:"team",team:t},"");}
 addEventListener("popstate",e=>{const st=e.state;if(!st)return;if(st.team)$("team").value=st.team;setTab(st.tab);render();scrollTo(0,st.y||0)});
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{setTab(b.dataset.tab);render()});
