@@ -82,6 +82,7 @@ td.rk{font:800 18px "Barlow Condensed",sans-serif;color:var(--muted);width:28px}
 .score{text-align:right;font-variant-numeric:tabular-nums}
 .proj{font:500 13px Barlow,sans-serif;color:var(--muted)}
 .pct{font:600 15px Barlow,sans-serif;color:var(--muted)}.pct.fav{color:var(--blue);font-weight:700}
+.pj td,.pj th{padding:8px 5px}.pj td.t,.pj th.t{max-width:34vw;padding-left:10px}.pj td.pts{font-size:17px}.pj td,.pj th{font-size:14px}
 .tie{font-size:12px;color:var(--muted);text-align:right;margin-top:2px}
 .panel p.chance{color:var(--ink);font-weight:600}
 .tag{display:inline-block;font:700 11px Barlow,sans-serif;padding:2px 7px;border-radius:6px;background:var(--ink);color:var(--card);margin-left:6px;text-transform:uppercase;letter-spacing:.04em}
@@ -155,27 +156,56 @@ function fromCSV(text){
   return {standings:st,games:gm};}
 
 // ---- win probabilities ----
-// Ratings are goals better than an average tournament team. Each team starts from a prior
-// (last season's MyHockeyRankings rating when PRIOR has it, else average) worth PK games,
-// then tournament results adjust it, weighted by who they played.
-const PRIOR={}; // team name -> MHR rating
-const PK=3, AGEUP=0.5, CAP=5, SIG=2.4;
-let RT={};
+// Ratings are goals better than an average tournament team. Each team starts from last
+// season's MyHockeyRankings rating (scaled by AGEUP, worth PK games) or from average if it
+// has none, then tournament results move it, weighted by who they played. Scores are
+// modelled as Poisson goals around the league average, which also gives tie chances.
+const PRIOR={"Toronto Jr Canadiens":98.97,"Toronto Marlboros":99.99,"Vaughan Kings":98.74,"Huron Perth Lakers":95.15,"Toronto Nationals":98.57,"Don Mills Flyers":94.61,"Reps Hockey":94.67,"Elgin Middlesex Canucks":95.64,"Toronto Titans":95.75,"Ottawa Valley Titans":95.73,"Waterloo Wolves":96.87,"Mississauga Senators":92.85,"Toronto Red Wings":96.47,"Barrie Colts":94.35,"Peterborough Jr Petes":95.11,"Windsor Spitfires":94.14,"Burlington Eagles":95.47,"Markham Majors":94.86,"Niagara North Stars":95.52,"Mississauga Rebels":93.96,"Halton Hurricanes":95.76,"Ajax-Pickering Raiders":91.73,"Quinte Red Devils":97.53,"Soo Jr Greyhounds":92.2,"Credit River Capitals":95.16,"Oakville Rangers":92.12,"Eastern Ontario Wild":94.0,"London Jr Knights":93.77,"York Simcoe Express":95.64,"Markham Waxers":92.74,"Kitchener Jr Rangers":93.48}; // MHR 2025-26 U13 AAA ratings
+const AGEUP=.8, PK=4, PK0=2, CAP=5, SIMS=5000;
+let RT={}, BASE=3, SIM=null;
 function ratings(){
-  const teams=D.standings.map(s=>s.team), r={}, pr={};
+  const teams=D.standings.map(s=>s.team), r={}, pr={}, k={};
   const known=teams.filter(t=>PRIOR[t]!=null), avg=known.length?known.reduce((a,t)=>a+PRIOR[t],0)/known.length:0;
-  for(const t of teams){pr[t]=PRIOR[t]!=null?(PRIOR[t]-avg)*AGEUP:0;r[t]=pr[t]}
+  for(const t of teams){const has=PRIOR[t]!=null;pr[t]=has?(PRIOR[t]-avg)*AGEUP:0;k[t]=has?PK:PK0;r[t]=pr[t]}
   const gs=D.games.filter(g=>done(g)&&g.home in r&&g.away in r);
-  for(let it=0;it<80;it++){const n={};for(const t of teams)n[t]=[PK*pr[t],PK];
+  if(gs.length) BASE=gs.reduce((a,g)=>a+ +g.hs+ +g.vs,0)/(2*gs.length);
+  for(let it=0;it<80;it++){const n={};for(const t of teams)n[t]=[k[t]*pr[t],k[t]];
     for(const g of gs){const d=Math.max(-CAP,Math.min(CAP,+g.hs-+g.vs));
       n[g.home][0]+=d+r[g.away];n[g.home][1]++;n[g.away][0]+=r[g.home]-d;n[g.away][1]++}
     for(const t of teams)r[t]=n[t][0]/n[t][1]}
   return r;}
-const Phi=x=>{const t=1/(1+.2316419*Math.abs(x)),y=t*(.31938153+t*(-.356563782+t*(1.781477937+t*(-1.821255978+t*1.330274429)))),p=1-.3989422804*Math.exp(-x*x/2)*y;return x>=0?p:1-p};
+const lam=(x,y)=>[Math.max(.15,BASE+(RT[x]-RT[y])/2),Math.max(.15,BASE-(RT[x]-RT[y])/2)];
+const pmf=l=>{const p=[Math.exp(-l)];for(let i=1;i<25;i++)p[i]=p[i-1]*l/i;return p};
+function wtl(x,y){const [lh,la]=lam(x,y),h=pmf(lh),a=pmf(la);let w=0,t=0;
+  for(let i=0;i<25;i++)for(let j=0;j<25;j++){if(i>j)w+=h[i]*a[j];else if(i===j)t+=h[i]*a[j]}return[w,t,Math.max(0,1-w-t)]}
 function odds(g){const h=placeTeam(g.home)||g.home,a=placeTeam(g.away)||g.away;
-  if(!(h in RT)||!(a in RT)) return null; const d=RT[h]-RT[a];
-  let ph,pa; if(isRR(g)){ph=1-Phi((.5-d)/SIG);pa=Phi((-.5-d)/SIG)}else{ph=Phi(d/SIG);pa=1-ph}
-  ph=Math.round(ph*100);pa=Math.round(pa*100);return{h:ph,a:pa,t:isRR(g)?100-ph-pa:0};}
+  if(!(h in RT)||!(a in RT)) return null; let [w,t,l]=wtl(h,a);
+  if(!isRR(g)){w+=t*w/(w+l||1);l=1-w;t=0}
+  const ph=Math.round(w*100),pa=Math.round(l*100);return{h:ph,a:pa,t:isRR(g)?100-ph-pa:0};}
+
+// Monte Carlo of the rest of the round robin, then the bracket (seeded, so the same
+// scores always give the same numbers). Ties on points are split by %GF, as the sheet does.
+function simulate(){
+  let seed=12345;const rnd=()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  const pois=l=>{const L=Math.exp(-l);let k=0,p=1;do{k++;p*=rnd()}while(p>L);return k-1};
+  const teams=D.standings.map(s=>s.team), left=D.games.filter(g=>isRR(g)&&!done(g)&&g.home in RT&&g.away in RT);
+  const pw={};const win=(x,y)=>{const key=x+"|"+y;if(!(key in pw)){const [w,t,l]=wtl(x,y);pw[key]=w+t*w/(w+l||1)}return rnd()<pw[key]?x:y};
+  const out={};for(const t of teams)out[t]={rank:0,top8:0,first:0,title:0,ranks:new Array(teams.length+1).fill(0)};
+  for(let n=0;n<SIMS;n++){
+    const st={};for(const s of D.standings)st[s.team]={p:s.PTS,gf:s.GF,ga:s.GA};
+    for(const g of left){const [lh,la]=lam(g.home,g.away),h=pois(lh),a=pois(la),H=st[g.home],A=st[g.away];
+      H.gf+=h;H.ga+=a;A.gf+=a;A.ga+=h;if(h>a)H.p+=2;else if(a>h)A.p+=2;else{H.p++;A.p++}}
+    const pct=x=>x.gf+x.ga?x.gf/(x.gf+x.ga):0;
+    const order=teams.map(t=>[t,st[t].p,pct(st[t]),rnd()]).sort((a,b)=>b[1]-a[1]||b[2]-a[2]||a[3]-b[3]).map(x=>x[0]);
+    order.forEach((t,i)=>{const o=out[t];o.rank+=i+1;o.ranks[i+1]++;if(i<8)o.top8++;if(!i)o.first++});
+    if(order.length>=8){const s=order;const q1=win(s[3],s[4]),q2=win(s[2],s[5]),q3=win(s[1],s[6]),q4=win(s[0],s[7]);
+      out[win(win(q4,q1),win(q3,q2))].title++}}
+  for(const t of teams){const o=out[t];o.rank/=SIMS;o.top8/=SIMS;o.first/=SIMS;o.title/=SIMS;
+    let best=1;for(let i=1;i<o.ranks.length;i++)if(o.ranks[i]>o.ranks[best])best=i;o.likely=best}
+  return out;}
+function model(){RT=ratings();SIM=simulate()}
+const pctTxt=p=>p>=.995?">99%":p<.005?(p>0?"<1%":"0%"):Math.round(p*100)+"%";
+const ord=n=>n+(["th","st","nd","rd"][(n%100>10&&n%100<14)?0:n%10]||"th");
 
 // ---- render ----
 const teamLink=t=>D.standings.some(x=>x.team===t)?`<button class="tlink" data-goto="${esc(t)}">${esc(t)}</button>`:esc(t);
@@ -189,6 +219,14 @@ function gameCard(g,team,nextId){
    <div class="teams"><div class="${aw?"w":fin?"l":""}">${nameCell(g.away||"TBD")}</div><div class="score">${fin?esc(g.vs):pc(o&&o.a,o&&o.h)}</div>
    <div class="${hw?"w":fin?"l":""}">${nameCell(g.home||"TBD")}</div><div class="score">${fin?esc(g.hs):pc(o&&o.h,o&&o.a)}</div></div>${o&&o.t?`<div class="tie">Tie ${o.t}%</div>`:""}</div>`;}
 
+function renderProj(q,team){
+  if(!SIM) return "";
+  const list=D.standings.map(s=>s.team).filter(t=>!q||t.toLowerCase().includes(q)).sort((a,b)=>SIM[a].rank-SIM[b].rank);
+  if(!list.length) return "";
+  const rows=list.map((t,i)=>{const o=SIM[t];return `<tr class="${t===team?"me":""}"><td class="t"><button class="tlink" data-goto="${esc(t)}">${esc(t)}</button></td><td>${ord(o.likely)}</td><td class="pts">${pctTxt(o.top8)}</td><td>${pctTxt(o.first)}</td><td>${pctTxt(o.title)}</td></tr>`}).join("");
+  return `<div class="section">Projected finish<small>${SIMS.toLocaleString()} simulations</small></div>
+   <div class="tablewrap"><table class="pj"><thead><tr><th class="t">Team</th><th>Likely</th><th>Top 8</th><th>1st</th><th>Title</th></tr></thead><tbody>${rows}</tbody></table></div>
+   <p class="legend">Simulates every remaining game ${SIMS.toLocaleString()} times. Team strength comes from last season's MyHockeyRankings rating plus results here, adjusted for opponents. Likely = most common finishing spot after the round robin. Title = wins Sunday's final.</p>`;}
 function renderStandings(q,team){
   const list=D.standings.filter(s=>!q||s.team.toLowerCase().includes(q));
   if(!list.length) return `<div class="empty">No team matches “${esc(q)}”.</div>`;
@@ -197,6 +235,7 @@ function renderStandings(q,team){
   return `<div class="section">Standings<small>${D.standings.length} teams</small></div>
    <div class="tablewrap"><table><thead><tr><th></th><th class="t">Team</th><th>GP</th><th>W</th><th>L</th><th>T</th><th>PTS</th><th>GF</th><th>GA</th><th>+/-</th><th>%GF</th></tr></thead><tbody>${rows}</tbody></table></div>
    <div class="legend"><span><span class="sw" style="background:var(--zone)"></span>Top 8: quarterfinals</span><span><span class="sw" style="background:var(--czone)"></span>9–12: consolation</span></div>
+   ${renderProj(q,team)}
    <p class="legend">Official ranking from the tournament sheet. Ties on points are separated by %GF (goals for ÷ total goals). Teams have played different numbers of games, so rank will move a lot until Saturday night.</p>`;}
 
 function renderTeam(team){
@@ -218,7 +257,7 @@ function renderTeam(team){
    <div class="pair">
     <div class="panel"><h3>Next game</h3>${next?`<div class="big">vs ${esc(next.home===team?next.away:next.home)}</div><p>${esc(next.date.slice(0,3))} ${esc(next.time)} · ${esc(next.arena)} · ${next.home===team?"Home":"Away"}</p>${(()=>{const o=odds(next);if(!o)return"";const w=next.home===team?o.h:o.a,l=next.home===team?o.a:o.h;return `<p class="chance">Win ${w}%${o.t?` · Tie ${o.t}%`:""} · Loss ${l}%</p>`})()}`:`<div class="big">Round robin complete</div>`}</div>
     <div class="panel"><h3>Last result</h3>${played.length?(()=>{const x=res(played[played.length-1]);return `<div class="big"><span class="res ${x.r}">${x.r}</span>${x.us}-${x.them}</div><p>vs ${esc(x.opp)}</p>`})():`<div class="big">No results yet</div>`}</div>
-   </div>${proj}
+   </div>${SIM&&SIM[team]?`<div class="panel" style="margin-top:10px"><h3>Chances</h3><div class="big">Top 8: ${pctTxt(SIM[team].top8)} · Title: ${pctTxt(SIM[team].title)}</div><p>Most likely finish: ${ord(SIM[team].likely)} after the round robin · 1st seed ${pctTxt(SIM[team].first)}</p></div>`:""}${proj}
    <div class="section">${esc(team)} games</div>${mine.map(g=>gameCard(g,team,next&&next.id)).join("")}`;}
 
 function renderSchedule(q,team){
@@ -227,13 +266,12 @@ function renderSchedule(q,team){
   const chips=`<div class="chips">${["",...days].map(d=>`<button data-day="${esc(d)}" aria-pressed="${d===dayF}">${d?esc(d.slice(0,10)):"All days"}</button>`).join("")}</div>`;
   if(!list.length) return chips+`<div class="empty">No games match. Clear the search or pick All days.</div>`;
   const now=new Date(), next=D.games.find(g=>!done(g)&&(!when(g)||when(g)>now-90*60000));
-  let html=chips+`<p class="legend">% = estimated chance to win, from tournament results so far, adjusted for opponent strength.</p>`, cur=null;
+  let html=chips+`<p class="legend">% = estimated chance to win, from last season's MyHockeyRankings rating and results here, adjusted for opponent strength.</p>`, cur=null;
   for(const g of list){ if(g.date!==cur){cur=g.date;const n=list.filter(x=>x.date===cur);html+=`<div class="section">${esc(cur.slice(0,10))}<small>${n.filter(done).length}/${n.length} final</small></div>`}
     html+=gameCard(g,team,next&&next.id)}
   return html;}
 
 function render(){
-  RT=ratings();
   const q=$("q").value.trim().toLowerCase(), team=$("team").value;
   $("q").style.display=tab==="team"?"none":"";
   $("out").innerHTML=tab==="team"?renderTeam(team):tab==="standings"?renderStandings(q,team):renderSchedule(q,team);
@@ -248,7 +286,7 @@ function setStatus(){$("dot").className="dot"+(live?"":" snap");
 async function load(){
   const src=PROXY||SHEET;
   try{const r=await fetch(src+(src.includes("?")?"&":"?")+"t="+Date.now(),{cache:"no-store"});
-    if(!r.ok) throw 0; D=fromCSV(await r.text()); live=true;}
+    if(!r.ok) throw 0; D=fromCSV(await r.text()); live=true; model();}
   catch(e){ /* keep last good data */ }
   fillTeams(); setStatus(); render();}
 
@@ -269,7 +307,7 @@ vnB.onclick=()=>{if(vnA.paused){vnA.currentTime=0;vnA.play().catch(()=>{})}else 
 const vnEv=["click","touchend","keydown"];
 function vnFirst(e){vnEv.forEach(t=>removeEventListener(t,vnFirst,true));if(!vnA.dataset.played&&!e.target.closest("#vn"))vnA.play().catch(()=>{})}
 vnA.play().catch(()=>vnEv.forEach(t=>addEventListener(t,vnFirst,true)));
-fillTeams(); setStatus(); render(); load(); setInterval(load,60000);
+model(); fillTeams(); setStatus(); render(); load(); setInterval(load,60000);
 </script>
 </body>
 </html>
