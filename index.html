@@ -21,6 +21,8 @@ h1{font:800 clamp(30px,8.5vw,46px)/.92 "Barlow Condensed",Impact,sans-serif;marg
 .presented span{white-space:nowrap}
 .presented a{display:block;line-height:0}
 .presented img{height:22px;width:auto}
+.vn{margin-left:auto;padding:5px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;font:600 12px Barlow,sans-serif;letter-spacing:.02em;text-transform:none;white-space:nowrap}
+.vn[aria-pressed=true]{background:var(--blue);border-color:var(--blue)}
 .sub{color:rgba(255,255,255,.72);font-weight:500;margin-top:6px;font-size:15px}
 .bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:16px 16px 10px;border-bottom:1px solid var(--line)}
 .wrap,main{max-width:820px;margin:0 auto}
@@ -91,7 +93,7 @@ td.rk{font:800 18px "Barlow Condensed",sans-serif;color:var(--muted);width:28px}
 </style>
 </head>
 <body>
-<header><div class="presented"><span>Presented by</span><a href="https://tilthockey.com" target="_blank" rel="noopener"><img src="assets/tilt-logo.png" alt="Tilt Hockey" width="366" height="44"></a></div>
+<header><div class="presented"><span>Presented by</span><a href="https://tilthockey.com" target="_blank" rel="noopener"><img src="assets/tilt-logo.png" alt="Tilt Hockey" width="366" height="44"></a><button id="vn" class="vn" type="button" aria-pressed="false">▶ Tilt message</button></div>
 <audio id="vnA" preload="auto"><source src="assets/tilt-message.m4a" type="audio/mp4"><source src="assets/tilt-message.ogg" type="audio/ogg"></audio><h1>Red Wings Tournament</h1><div class="sub">U14 AAA · Scotia Pond &amp; Chesswood · Sep 25–27</div></header>
 <div class="bar"><div class="wrap">
   <div class="tabs" role="tablist">
@@ -232,10 +234,12 @@ $("team").onchange=()=>{store.set("team",$("team").value);render()};
 $("refresh").onclick=load;
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)load()});
 // voice note: try to autoplay; browsers that block it play on the first tap instead
-const vnA=$("vnA");
-vnA.onplay=()=>{vnA.dataset.played=1};
+const vnA=$("vnA"),vnB=$("vn");
+const vnUI=()=>{const on=!vnA.paused;vnB.textContent=on?"■ Stop":"▶ Tilt message";vnB.setAttribute("aria-pressed",on)};
+vnA.onplay=()=>{vnA.dataset.played=1;vnUI()};vnA.onpause=vnA.onended=vnUI;
+vnB.onclick=()=>{if(vnA.paused){vnA.currentTime=0;vnA.play().catch(()=>{})}else vnA.pause()};
 const vnEv=["click","touchend","keydown"];
-function vnFirst(){vnEv.forEach(t=>removeEventListener(t,vnFirst,true));if(!vnA.dataset.played)vnA.play().catch(()=>{})}
+function vnFirst(e){vnEv.forEach(t=>removeEventListener(t,vnFirst,true));if(!vnA.dataset.played&&!e.target.closest("#vn"))vnA.play().catch(()=>{})}
 vnA.play().catch(()=>vnEv.forEach(t=>addEventListener(t,vnFirst,true)));
 fillTeams(); setStatus(); render(); load(); setInterval(load,60000);
 </script>
