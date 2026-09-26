@@ -80,6 +80,7 @@ td.rk{font:800 18px "Barlow Condensed",sans-serif;color:var(--muted);width:28px}
 .chips{display:flex;gap:6px;overflow-x:auto;margin-top:12px;padding-bottom:2px}
 .chips button{white-space:nowrap;padding:6px 12px;font-size:14px;border-radius:999px}
 .chips button[aria-pressed=true]{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tlink{border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;text-decoration:underline dotted var(--muted);text-underline-offset:3px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:520px){.pair{grid-template-columns:1fr}.stat b{font-size:25px}}
 </style>
 </head>
@@ -155,7 +156,7 @@ function renderStandings(q,team){
   const list=D.standings.filter(s=>!q||s.team.toLowerCase().includes(q));
   if(!list.length) return `<div class="empty">No team matches “${esc(q)}”.</div>`;
   const rows=list.map(s=>{const d=s.GF-s.GA;
-    return `<tr class="${s.team===team?"me":zone(s.rank)} ${!q&&s.rank===8?"cut":""} ${!q&&s.rank===12?"ccut":""}"><td class="rk">${s.rank}</td><td class="t">${esc(s.team)}</td><td>${s.G}</td><td>${s.W}</td><td>${s.L}</td><td>${s.T}</td><td class="pts">${s.PTS}</td><td>${s.GF}</td><td>${s.GA}</td><td class="${d>0?"pos":d<0?"neg":""}">${d>0?"+":""}${d}</td><td>${esc(s.pct)}</td></tr>`}).join("");
+    return `<tr class="${s.team===team?"me":zone(s.rank)} ${!q&&s.rank===8?"cut":""} ${!q&&s.rank===12?"ccut":""}"><td class="rk">${s.rank}</td><td class="t"><button class="tlink" data-goto="${esc(s.team)}">${esc(s.team)}</button></td><td>${s.G}</td><td>${s.W}</td><td>${s.L}</td><td>${s.T}</td><td class="pts">${s.PTS}</td><td>${s.GF}</td><td>${s.GA}</td><td class="${d>0?"pos":d<0?"neg":""}">${d>0?"+":""}${d}</td><td>${esc(s.pct)}</td></tr>`}).join("");
   return `<div class="section">Standings<small>${D.standings.length} teams</small></div>
    <div class="tablewrap"><table><thead><tr><th></th><th class="t">Team</th><th>GP</th><th>W</th><th>L</th><th>T</th><th>PTS</th><th>GF</th><th>GA</th><th>+/-</th><th>%GF</th></tr></thead><tbody>${rows}</tbody></table></div>
    <div class="legend"><span><span class="sw" style="background:var(--zone)"></span>Top 8: quarterfinals</span><span><span class="sw" style="background:var(--czone)"></span>9–12: consolation</span></div>
@@ -198,6 +199,7 @@ function render(){
   const q=$("q").value.trim().toLowerCase(), team=$("team").value;
   $("q").style.display=tab==="team"?"none":"";
   $("out").innerHTML=tab==="team"?renderTeam(team):tab==="standings"?renderStandings(q,team):renderSchedule(q,team);
+  $("out").querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>showTeam(b.dataset.goto));
   $("out").querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>{dayF=b.dataset.day;render()});}
 function fillTeams(){const sel=$("team"),keep=sel.value||store.get("team")||DEFAULT_TEAM;
   const names=D.standings.map(s=>s.team).sort();
@@ -212,7 +214,11 @@ async function load(){
   catch(e){ /* keep last good data */ }
   fillTeams(); setStatus(); render();}
 
-document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));render()});
+function setTab(t){tab=t;document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x.dataset.tab===t))}
+function showTeam(t){history.replaceState({tab,team:$("team").value,y:scrollY},"");
+  $("team").value=t;setTab("team");render();scrollTo(0,0);history.pushState({tab:"team",team:t},"");}
+addEventListener("popstate",e=>{const st=e.state;if(!st)return;if(st.team)$("team").value=st.team;setTab(st.tab);render();scrollTo(0,st.y||0)});
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{setTab(b.dataset.tab);render()});
 $("q").oninput=render;
 $("team").onchange=()=>{store.set("team",$("team").value);render()};
 $("refresh").onclick=load;
