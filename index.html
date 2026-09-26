@@ -93,7 +93,7 @@ td.rk{font:800 18px "Barlow Condensed",sans-serif;color:var(--muted);width:28px}
 </style>
 </head>
 <body>
-<header><div class="presented"><span>Presented by</span><a href="https://tilthockey.com" target="_blank" rel="noopener"><img src="assets/tilt-logo.png" alt="Tilt Hockey" width="366" height="44"></a><button id="vn" class="vn" type="button" aria-pressed="false">▶ Tilt message</button></div>
+<header><div class="presented"><span>Presented by</span><a href="https://tilthockey.com" target="_blank" rel="noopener"><img src="assets/tilt-logo.png" alt="Tilt Hockey" width="366" height="44"></a><button id="vn" class="vn" type="button" aria-pressed="false">▶ Brad's Message</button></div>
 <audio id="vnA" preload="auto"><source src="assets/tilt-message.m4a" type="audio/mp4"><source src="assets/tilt-message.ogg" type="audio/ogg"></audio><h1>Red Wings Tournament</h1><div class="sub">U14 AAA · Scotia Pond &amp; Chesswood · Sep 25–27</div></header>
 <div class="bar"><div class="wrap">
   <div class="tabs" role="tablist">
@@ -235,7 +235,7 @@ $("refresh").onclick=load;
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)load()});
 // voice note: try to autoplay; browsers that block it play on the first tap instead
 const vnA=$("vnA"),vnB=$("vn");
-const vnUI=()=>{const on=!vnA.paused;vnB.textContent=on?"■ Stop":"▶ Tilt message";vnB.setAttribute("aria-pressed",on)};
+const vnUI=()=>{const on=!vnA.paused;vnB.textContent=on?"■ Stop":"▶ Brad's Message";vnB.setAttribute("aria-pressed",on)};
 vnA.onplay=()=>{vnA.dataset.played=1;vnUI()};vnA.onpause=vnA.onended=vnUI;
 vnB.onclick=()=>{if(vnA.paused){vnA.currentTime=0;vnA.play().catch(()=>{})}else vnA.pause()};
 const vnEv=["click","touchend","keydown"];
