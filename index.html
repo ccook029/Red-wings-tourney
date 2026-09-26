@@ -81,6 +81,9 @@ td.rk{font:800 18px "Barlow Condensed",sans-serif;color:var(--muted);width:28px}
 .teams .w{color:var(--blue)} .teams .l{opacity:.55}
 .score{text-align:right;font-variant-numeric:tabular-nums}
 .proj{font:500 13px Barlow,sans-serif;color:var(--muted)}
+.pct{font:600 15px Barlow,sans-serif;color:var(--muted)}.pct.fav{color:var(--blue);font-weight:700}
+.tie{font-size:12px;color:var(--muted);text-align:right;margin-top:2px}
+.panel p.chance{color:var(--ink);font-weight:600}
 .tag{display:inline-block;font:700 11px Barlow,sans-serif;padding:2px 7px;border-radius:6px;background:var(--ink);color:var(--card);margin-left:6px;text-transform:uppercase;letter-spacing:.04em}
 .res{display:inline-block;min-width:22px;text-align:center;border-radius:6px;padding:0 6px;font:700 14px Barlow,sans-serif;color:#fff;margin-right:6px}
 .res.W{background:var(--blue);color:var(--on-blue)}.res.L{background:var(--ink);color:var(--card)}.res.T{background:var(--muted)}
@@ -151,16 +154,40 @@ function fromCSV(text){
   if(st.length<4||gm.length<4) throw new Error("sheet layout changed");
   return {standings:st,games:gm};}
 
+// ---- win probabilities ----
+// Ratings are goals better than an average tournament team. Each team starts from a prior
+// (last season's MyHockeyRankings rating when PRIOR has it, else average) worth PK games,
+// then tournament results adjust it, weighted by who they played.
+const PRIOR={}; // team name -> MHR rating
+const PK=3, AGEUP=0.5, CAP=5, SIG=2.4;
+let RT={};
+function ratings(){
+  const teams=D.standings.map(s=>s.team), r={}, pr={};
+  const known=teams.filter(t=>PRIOR[t]!=null), avg=known.length?known.reduce((a,t)=>a+PRIOR[t],0)/known.length:0;
+  for(const t of teams){pr[t]=PRIOR[t]!=null?(PRIOR[t]-avg)*AGEUP:0;r[t]=pr[t]}
+  const gs=D.games.filter(g=>done(g)&&g.home in r&&g.away in r);
+  for(let it=0;it<80;it++){const n={};for(const t of teams)n[t]=[PK*pr[t],PK];
+    for(const g of gs){const d=Math.max(-CAP,Math.min(CAP,+g.hs-+g.vs));
+      n[g.home][0]+=d+r[g.away];n[g.home][1]++;n[g.away][0]+=r[g.home]-d;n[g.away][1]++}
+    for(const t of teams)r[t]=n[t][0]/n[t][1]}
+  return r;}
+const Phi=x=>{const t=1/(1+.2316419*Math.abs(x)),y=t*(.31938153+t*(-.356563782+t*(1.781477937+t*(-1.821255978+t*1.330274429)))),p=1-.3989422804*Math.exp(-x*x/2)*y;return x>=0?p:1-p};
+function odds(g){const h=placeTeam(g.home)||g.home,a=placeTeam(g.away)||g.away;
+  if(!(h in RT)||!(a in RT)) return null; const d=RT[h]-RT[a];
+  let ph,pa; if(isRR(g)){ph=1-Phi((.5-d)/SIG);pa=Phi((-.5-d)/SIG)}else{ph=Phi(d/SIG);pa=1-ph}
+  ph=Math.round(ph*100);pa=Math.round(pa*100);return{h:ph,a:pa,t:isRR(g)?100-ph-pa:0};}
+
 // ---- render ----
 const teamLink=t=>D.standings.some(x=>x.team===t)?`<button class="tlink" data-goto="${esc(t)}">${esc(t)}</button>`:esc(t);
 function nameCell(label){const t=placeTeam(label); return t?`${esc(label)}<div class="proj">now: ${teamLink(t)}</div>`:teamLink(label)}
 function gameCard(g,team,nextId){
   const mine=team&&(g.home===team||g.away===team), fin=done(g);
-  const hw=fin&&+g.hs>+g.vs, aw=fin&&+g.vs>+g.hs;
+  const hw=fin&&+g.hs>+g.vs, aw=fin&&+g.vs>+g.hs, o=fin?null:odds(g);
+  const pc=(x,y)=>o?`<span class="pct${x>y?" fav":""}">${x}%</span>`:"";
   return `<div class="game${mine?" mine":""}${g.id===nextId?" next":""}">
    <div class="gtop"><span><b>${esc(g.time)}</b> · ${esc(g.arena)}${g.id===nextId?'<span class="tag">Up next</span>':""}</span><span>${isRR(g)?"Game "+esc(g.id):"<b>"+esc(g.type)+"</b>"}</span></div>
-   <div class="teams"><div class="${aw?"w":fin?"l":""}">${nameCell(g.away||"TBD")}</div><div class="score">${fin?esc(g.vs):""}</div>
-   <div class="${hw?"w":fin?"l":""}">${nameCell(g.home||"TBD")}</div><div class="score">${fin?esc(g.hs):""}</div></div></div>`;}
+   <div class="teams"><div class="${aw?"w":fin?"l":""}">${nameCell(g.away||"TBD")}</div><div class="score">${fin?esc(g.vs):pc(o&&o.a,o&&o.h)}</div>
+   <div class="${hw?"w":fin?"l":""}">${nameCell(g.home||"TBD")}</div><div class="score">${fin?esc(g.hs):pc(o&&o.h,o&&o.a)}</div></div>${o&&o.t?`<div class="tie">Tie ${o.t}%</div>`:""}</div>`;}
 
 function renderStandings(q,team){
   const list=D.standings.filter(s=>!q||s.team.toLowerCase().includes(q));
@@ -189,7 +216,7 @@ function renderTeam(team){
     <div class="stats"><div class="stat"><b>${s.W}-${s.L}-${s.T}</b><span>W-L-T</span></div><div class="stat"><b>${s.PTS}</b><span>Points</span></div>
     <div class="stat"><b>${d>0?"+":""}${d}</b><span>${s.GF} GF · ${s.GA} GA</span></div><div class="stat"><b>${gamesLeft}</b><span>RR left</span></div></div></div>
    <div class="pair">
-    <div class="panel"><h3>Next game</h3>${next?`<div class="big">vs ${esc(next.home===team?next.away:next.home)}</div><p>${esc(next.date.slice(0,3))} ${esc(next.time)} · ${esc(next.arena)} · ${next.home===team?"Home":"Away"}</p>`:`<div class="big">Round robin complete</div>`}</div>
+    <div class="panel"><h3>Next game</h3>${next?`<div class="big">vs ${esc(next.home===team?next.away:next.home)}</div><p>${esc(next.date.slice(0,3))} ${esc(next.time)} · ${esc(next.arena)} · ${next.home===team?"Home":"Away"}</p>${(()=>{const o=odds(next);if(!o)return"";const w=next.home===team?o.h:o.a,l=next.home===team?o.a:o.h;return `<p class="chance">Win ${w}%${o.t?` · Tie ${o.t}%`:""} · Loss ${l}%</p>`})()}`:`<div class="big">Round robin complete</div>`}</div>
     <div class="panel"><h3>Last result</h3>${played.length?(()=>{const x=res(played[played.length-1]);return `<div class="big"><span class="res ${x.r}">${x.r}</span>${x.us}-${x.them}</div><p>vs ${esc(x.opp)}</p>`})():`<div class="big">No results yet</div>`}</div>
    </div>${proj}
    <div class="section">${esc(team)} games</div>${mine.map(g=>gameCard(g,team,next&&next.id)).join("")}`;}
@@ -200,12 +227,13 @@ function renderSchedule(q,team){
   const chips=`<div class="chips">${["",...days].map(d=>`<button data-day="${esc(d)}" aria-pressed="${d===dayF}">${d?esc(d.slice(0,10)):"All days"}</button>`).join("")}</div>`;
   if(!list.length) return chips+`<div class="empty">No games match. Clear the search or pick All days.</div>`;
   const now=new Date(), next=D.games.find(g=>!done(g)&&(!when(g)||when(g)>now-90*60000));
-  let html=chips, cur=null;
+  let html=chips+`<p class="legend">% = estimated chance to win, from tournament results so far, adjusted for opponent strength.</p>`, cur=null;
   for(const g of list){ if(g.date!==cur){cur=g.date;const n=list.filter(x=>x.date===cur);html+=`<div class="section">${esc(cur.slice(0,10))}<small>${n.filter(done).length}/${n.length} final</small></div>`}
     html+=gameCard(g,team,next&&next.id)}
   return html;}
 
 function render(){
+  RT=ratings();
   const q=$("q").value.trim().toLowerCase(), team=$("team").value;
   $("q").style.display=tab==="team"?"none":"";
   $("out").innerHTML=tab==="team"?renderTeam(team):tab==="standings"?renderStandings(q,team):renderSchedule(q,team);
